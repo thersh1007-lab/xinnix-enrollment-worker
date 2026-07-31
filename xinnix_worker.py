@@ -582,7 +582,7 @@ def _xinnix_opp_contacts(opp, enroll_unclassified=False):
     return manager, students, skipped
 
 
-XINNIX_WEBHOOK_VERSION = "wh-2026-07-31-payment-guard"  # bump each deploy; GET /xinnix/version to confirm live
+XINNIX_WEBHOOK_VERSION = "wh-2026-07-31-repeat-buyer-roster"  # bump each deploy; GET /xinnix/version to confirm live
 
 
 @app.route("/xinnix/version", methods=["GET"])
@@ -1161,10 +1161,16 @@ def _xinnix_enroll_worker(data):
     created = [o for o in out if o.get("enrollment_id")]
     # Single-seat / explicit-student enrollment completes here (multi-seat deferred above to
     # the picker). Stamp the roster + fire the notification on the opp the enrollments hang off.
+    # REPEAT-BUYER FIX (Jul 31): refresh the roster / enrolled_students on THIS order's students
+    # even when no NEW record was created (a repeat buyer already enrolled in the resolved program
+    # -> created is empty). Otherwise enrolled_students keeps the PRIOR order's student and the
+    # notification names the wrong person (Bryn saw a stale "Jessica Stanton"). Only RE-FIRE the
+    # roster-ready tag when something new was actually enrolled, so an already-enrolled repeat
+    # purchase refreshes the field without sending a spurious duplicate notification.
     roster = {}
-    if not dry_run and created and students:
+    if not dry_run and students:
         roster = _xinnix_stamp_roster(link_opp, student_cids=students,
-                                      manager_cid=manager_id or None, seats=seats, fire=True)
+                                      manager_cid=manager_id or None, seats=seats, fire=bool(created))
     return jsonify({"success": True, "dry_run": dry_run,
                     "read_opp": opportunity_id, "attached_to_opp": link_opp,
                     "programs_count": len(programs), "students_count": len(students),
