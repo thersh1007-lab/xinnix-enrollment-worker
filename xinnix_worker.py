@@ -433,6 +433,9 @@ def _xinnix_contact_role(cid):
     return role, isstu
 
 
+_xinnix_contact_meta_cache = {}  # module-level cache (restored: AST extraction dropped it)
+
+
 def _xinnix_contact_meta(cid):
     """Return {name, email, company} for a contact, cached per request-lifetime.
     Feeds the enrollment record's Student / Company fields so the "Ready to Onboard"
