@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: xinnix-enrollment-worker
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn xinnix_worker:app --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: XINNIX_GHL_TOKEN
+        sync: false          # set this in the Render dashboard = the GHL PIT
+      - key: PYTHON_VERSION
+        value: 3.12.4
