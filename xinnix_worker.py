@@ -117,6 +117,9 @@ def _xinnix_norm_program(s):
     return re.sub(r"\s+", " ", re.sub(r"[^A-Z0-9& ]", " ", (s or "").upper())).strip()
 
 
+_xinnix_prog_record_index = None  # module-level cache (restored: AST extraction dropped it)
+
+
 def _xinnix_program_records_index():
     """Build (once, cached) a normalized-name -> record_id index of the LIVE program
     records, so any product that matches an existing program auto-links even if it was
